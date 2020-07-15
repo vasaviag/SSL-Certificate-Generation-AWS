@@ -1,8 +1,9 @@
 <?php
 
-include 'final.php';
+include 'GenerateCertificate.php';
 $key_ELB = 'Enter-Your-IAM-Key'; //Enter Your IAM key here
-$secret_ELB='Enter-Your-IAM-Secret-Key'; //Enter Your IAM Secret key here
+$secret_ELB ='Enter-Your-IAM-Secret-Key'; //Enter Your IAM Secret key here
+$listnerArn = 'Enter-Listener-Arn'; //Enter Listener Arn
 
 $client_ELB = ElasticLoadBalancingV2Client::factory(
 		array(
@@ -15,11 +16,11 @@ $client_ELB = ElasticLoadBalancingV2Client::factory(
 			)
 );
 
-$old_cert = $client_ELB->describeListenerCertificates([
-	'ListenerArn' => '<string>', // REQUIRED
+$oldCert = $client_ELB->describeListenerCertificates([
+	'ListenerArn' => $listnerArn, // REQUIRED
 ]);
 
-$k = $old_cert->search('Certificates.CertificateArn');
+$oldCertArn = $oldCert->search('Certificates.CertificateArn');
 
 $attach = $client_ELB->addListenerCertificates([
 	'Certificates' => [ // REQUIRED
@@ -28,22 +29,19 @@ $attach = $client_ELB->addListenerCertificates([
 			'IsDefault' => false,
 		],
 ],
-'ListenerArn' => '<string>', // REQUIRED
+'ListenerArn' => $listnerArn, // REQUIRED
 ]);
-
 
 $remove = $client_ELB->removeListenerCertificates([
 	'Certificates' => [ // REQUIRED
 		[
-		'CertificateArn' => $k,
+		'CertificateArn' => $oldCertArn,
 		'IsDefault' => false,
 	],
 ],
-	'ListenerArn' => '<string>', // REQUIRED
+	'ListenerArn' => $listnerArn, // REQUIRED
 ]);
 
 $delete_cert = $client_acm->deleteCertificate([
-	'CertificateArn' => $k, // REQUIRED
+	'CertificateArn' => $listnerArn, // REQUIRED
 ]);
-
-
